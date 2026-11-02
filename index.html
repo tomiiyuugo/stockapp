@@ -1,4 +1,4 @@
-# stockapp<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts (Inter & Noto Sans JP) -->
+  <!-- Google Fonts (Noto Sans JP) -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -45,7 +45,7 @@
       <!-- User Info & Logout (Auth State) -->
       <div id="authHeader" class="flex items-center space-x-3 hidden">
         <div class="flex items-center space-x-2 bg-emerald-800/60 px-3 py-1.5 rounded-full border border-emerald-600/50">
-          <img id="userAvatar" class="w-7 h-7 rounded-full border border-white" src="" alt="User">
+          <img id="userAvatar" class="w-7 h-7 rounded-full border border-white object-cover" src="" alt="User">
           <span id="userName" class="text-sm font-medium hidden sm:inline text-emerald-50"></span>
         </div>
         <button id="logoutBtn" class="bg-emerald-800 hover:bg-emerald-900 text-emerald-100 text-xs px-3 py-2 rounded-lg transition-all border border-emerald-600 flex items-center space-x-1">
@@ -58,6 +58,15 @@
 
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Toast Alert Notification -->
+    <div id="alertBox" class="hidden mb-6 p-4 rounded-xl shadow-md border text-sm flex items-center justify-between transition-all duration-300">
+      <div class="flex items-center space-x-2">
+        <i id="alertIcon" class="fa-solid fa-circle-info"></i>
+        <span id="alertMessage">メッセージ</span>
+      </div>
+      <button id="closeAlertBtn" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+    </div>
 
     <!-- 1. LOGIN SCREEN (Visible when unauthenticated) -->
     <div id="loginScreen" class="max-w-md mx-auto my-12 bg-white p-8 rounded-2xl shadow-xl border border-emerald-100 text-center">
@@ -100,15 +109,6 @@
     <!-- 2. MAIN DASHBOARD (Visible when authenticated) -->
     <div id="dashboard" class="hidden space-y-6">
 
-      <!-- Toast Alert Notification -->
-      <div id="alertBox" class="hidden p-4 rounded-xl shadow-md border text-sm flex items-center justify-between transition-all duration-300">
-        <div class="flex items-center space-x-2">
-          <i id="alertIcon" class="fa-solid fa-circle-info"></i>
-          <span id="alertMessage">メッセージ</span>
-        </div>
-        <button onclick="hideAlert()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
       <!-- Inventory Summary Dashboard (Current Stock Cards) -->
       <section class="bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
         <div class="flex justify-between items-center mb-4">
@@ -123,7 +123,6 @@
 
         <!-- Stock Cards Container -->
         <div id="stockSummaryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <!-- Dynamically Generated Cards -->
           <div class="col-span-full text-center py-6 text-slate-400 text-sm">データ読み込み中...</div>
         </div>
       </section>
@@ -216,7 +215,7 @@
                   <i class="fa-solid fa-check"></i>
                   <span id="submitBtnText">登録する</span>
                 </button>
-                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 px-3 rounded-xl transition-all">
+                <button type="button" id="cancelEditBtn" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 px-3 rounded-xl transition-all">
                   キャンセル
                 </button>
               </div>
@@ -229,21 +228,18 @@
 
           <!-- Filters & Sorting Controls -->
           <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100 flex flex-wrap gap-3 items-center justify-between">
-            <!-- Filter Search -->
             <div class="flex-1 min-w-[200px] relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
               <input type="text" id="searchInput" placeholder="資材名・メモで検索..." 
                 class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
 
-            <!-- Filter Type -->
             <select id="filterType" class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <option value="ALL">すべての区分</option>
               <option value="入庫">入庫のみ</option>
               <option value="出庫">出庫のみ</option>
             </select>
 
-            <!-- Sort Order -->
             <select id="sortOrder" class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <option value="desc">日付: 新しい順</option>
               <option value="asc">日付: 古い順</option>
@@ -260,7 +256,6 @@
               <span id="recordCount" class="text-xs text-slate-500">0 件の記録</span>
             </div>
 
-            <!-- Table View for Desktop & Cards for Mobile -->
             <div class="overflow-x-auto custom-scrollbar">
               <table class="w-full text-left text-sm border-collapse">
                 <thead class="bg-slate-100/80 text-slate-600 text-xs uppercase font-semibold">
@@ -321,9 +316,7 @@
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // ----------------------------------------------------
-    // Firebase Configuration & Initialization
-    // ----------------------------------------------------
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBEmrhD0J6CLyc9yyISpoTytvTN-i1ek7Y",
       authDomain: "vqmsgxnsgxns.firebaseapp.com",
@@ -338,7 +331,369 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'stockapp-default';
+    // App State
+    let currentUser = null;
+    let allRecords = [];
+    let unsubscribeSnapshot = null;
 
-    // State Variables
-<!-- ... existing code -->
+    // DOM Elements
+    const loginScreen = document.getElementById('loginScreen');
+    const dashboard = document.getElementById('dashboard');
+    const authHeader = document.getElementById('authHeader');
+    const loginBtn = document.getElementById('loginBtn');
+    const demoLoginBtn = document.getElementById('demoLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const loginStatus = document.getElementById('loginStatus');
+    const unauthorizedNotice = document.getElementById('unauthorizedDomainNotice');
+
+    const recordForm = document.getElementById('recordForm');
+    const recordDate = document.getElementById('recordDate');
+    const editDocId = document.getElementById('editDocId');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const formTitle = document.getElementById('formTitle');
+    const submitBtnText = document.getElementById('submitBtnText');
+
+    const searchInput = document.getElementById('searchInput');
+    const filterType = document.getElementById('filterType');
+    const sortOrder = document.getElementById('sortOrder');
+    const historyTableBody = document.getElementById('historyTableBody');
+    const stockSummaryGrid = document.getElementById('stockSummaryGrid');
+    const recordCount = document.getElementById('recordCount');
+
+    // Default Date to Today
+    recordDate.value = new Date().toISOString().split('T')[0];
+
+    // --- ALERT SYSTEM ---
+    function showAlert(msg, type = 'info') {
+      const alertBox = document.getElementById('alertBox');
+      const alertMessage = document.getElementById('alertMessage');
+      const alertIcon = document.getElementById('alertIcon');
+
+      alertMessage.textContent = msg;
+      alertBox.className = 'p-4 rounded-xl shadow-md border text-sm flex items-center justify-between transition-all duration-300 mb-6 ';
+
+      if (type === 'error') {
+        alertBox.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+        alertIcon.className = 'fa-solid fa-circle-exclamation text-rose-600 mr-2';
+      } else if (type === 'success') {
+        alertBox.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+        alertIcon.className = 'fa-solid fa-circle-check text-emerald-600 mr-2';
+      } else {
+        alertBox.classList.add('bg-sky-50', 'border-sky-200', 'text-sky-800');
+        alertIcon.className = 'fa-solid fa-circle-info text-sky-600 mr-2';
+      }
+
+      alertBox.classList.remove('hidden');
+    }
+
+    document.getElementById('closeAlertBtn').addEventListener('click', () => {
+      document.getElementById('alertBox').classList.add('hidden');
+    });
+
+    // --- AUTHENTICATION ---
+    loginBtn.addEventListener('click', async () => {
+      loginStatus.textContent = "Google認証ダイアログを開いています...";
+      unauthorizedNotice.classList.add('hidden');
+
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Login Error:", error);
+        loginStatus.textContent = "ログインエラーが発生しました。";
+        
+        if (error.code === 'auth/unauthorized-domain') {
+          unauthorizedNotice.classList.remove('hidden');
+          showAlert("このドメインはFirebase Consoleで許可されていません。", "error");
+        } else {
+          showAlert("ログインに失敗しました: " + error.message, "error");
+        }
+      }
+    });
+
+    demoLoginBtn.addEventListener('click', () => {
+      // Guest/Demo Mode Setup
+      currentUser = {
+        uid: 'demo-user-123',
+        displayName: 'デモ利用ユーザー',
+        photoURL: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+      };
+      setupUIForUser(currentUser);
+      showAlert("デモモードでログインしました（データはブラウザ共有されます）", "info");
+      subscribeToData();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      if (auth.currentUser) {
+        await signOut(auth);
+      } else {
+        currentUser = null;
+        setupUIForUser(null);
+      }
+      showAlert("ログアウトしました", "info");
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        setupUIForUser(user);
+        subscribeToData();
+      } else if (!currentUser || currentUser.uid !== 'demo-user-123') {
+        currentUser = null;
+        setupUIForUser(null);
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+      }
+    });
+
+    function setupUIForUser(user) {
+      if (user) {
+        loginScreen.classList.add('hidden');
+        dashboard.classList.remove('hidden');
+        authHeader.classList.remove('hidden');
+        userName.textContent = user.displayName || 'ユーザー';
+        userAvatar.src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+      } else {
+        loginScreen.classList.remove('hidden');
+        dashboard.classList.add('hidden');
+        authHeader.classList.add('hidden');
+        loginStatus.textContent = "ログイン認証を待機中...";
+      }
+    }
+
+    // --- FIRESTORE DATA SYNC ---
+    function subscribeToData() {
+      if (!currentUser) return;
+
+      const colRef = collection(db, 'records');
+
+      unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => {
+        allRecords = [];
+        snapshot.forEach((doc) => {
+          allRecords.push({ id: doc.id, ...doc.data() });
+        });
+        renderAll();
+      }, (error) => {
+        console.error("Firestore Error:", error);
+        showAlert("データの取得中にエラーが発生しました: " + error.message, "error");
+      });
+    }
+
+    // --- RENDER LOGIC ---
+    function renderAll() {
+      renderSummaryCards();
+      renderHistoryTable();
+    }
+
+    function renderSummaryCards() {
+      const summary = {};
+
+      allRecords.forEach(rec => {
+        const name = rec.itemName;
+        const qty = parseFloat(rec.quantity) || 0;
+        const unit = rec.unit || '個';
+        const type = rec.type;
+
+        if (!summary[name]) {
+          summary[name] = { total: 0, unit: unit };
+        }
+
+        if (type === '入庫') {
+          summary[name].total += qty;
+        } else if (type === '出庫') {
+          summary[name].total -= qty;
+        }
+      });
+
+      const keys = Object.keys(summary);
+      if (keys.length === 0) {
+        stockSummaryGrid.innerHTML = `
+          <div class="col-span-full text-center py-6 text-slate-400 text-sm">
+            まだ登録された資材データがありません。
+          </div>`;
+        return;
+      }
+
+      stockSummaryGrid.innerHTML = keys.map(key => {
+        const item = summary[key];
+        const isLow = item.total <= 2;
+        return `
+          <div class="bg-slate-50 border ${isLow ? 'border-amber-300 bg-amber-50/30' : 'border-slate-200'} p-3 rounded-xl flex flex-col justify-between">
+            <div class="text-xs font-bold text-slate-700 truncate" title="${key}">${key}</div>
+            <div class="mt-2 flex items-baseline justify-between">
+              <span class="text-xl font-black ${isLow ? 'text-amber-700' : 'text-emerald-700'}">${item.total % 1 === 0 ? item.total : item.total.toFixed(2)}</span>
+              <span class="text-xs font-medium text-slate-500">${item.unit}</span>
+            </div>
+            ${isLow ? '<span class="text-[10px] text-amber-600 font-semibold mt-1"><i class="fa-solid fa-triangle-exclamation"></i> 残少</span>' : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderHistoryTable() {
+      let filtered = [...allRecords];
+
+      // Filter Search Term
+      const query = searchInput.value.toLowerCase().trim();
+      if (query) {
+        filtered = filtered.filter(r => 
+          (r.itemName && r.itemName.toLowerCase().includes(query)) || 
+          (r.note && r.note.toLowerCase().includes(query))
+        );
+      }
+
+      // Filter Type
+      const typeVal = filterType.value;
+      if (typeVal !== 'ALL') {
+        filtered = filtered.filter(r => r.type === typeVal);
+      }
+
+      // Sort Order
+      const isDesc = sortOrder.value === 'desc';
+      filtered.sort((a, b) => {
+        const dateA = new Date(a.date || 0);
+        const dateB = new Date(b.date || 0);
+        return isDesc ? dateB - dateA : dateA - dateB;
+      });
+
+      recordCount.textContent = `${filtered.length} 件の記録`;
+
+      if (filtered.length === 0) {
+        historyTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-8 text-slate-400">
+              該当する入出庫データが見つかりません。
+            </td>
+          </tr>`;
+        return;
+      }
+
+      historyTableBody.innerHTML = filtered.map(rec => {
+        const isIn = rec.type === '入庫';
+        return `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-4 font-medium text-slate-700 whitespace-nowrap">${rec.date || '-'}</td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 text-xs font-bold rounded-full ${isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${rec.type}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-bold text-slate-800">${rec.itemName}</td>
+            <td class="py-3 px-4 text-right font-mono font-bold ${isIn ? 'text-emerald-600' : 'text-amber-600'}">
+              ${isIn ? '+' : '-'}${rec.quantity} <span class="text-xs text-slate-500 font-normal">${rec.unit}</span>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-500 max-w-[200px] truncate" title="${rec.note || ''}">${rec.note || '-'}</td>
+            <td class="py-3 px-4 text-center whitespace-nowrap">
+              <button class="edit-btn text-slate-400 hover:text-emerald-600 p-1 mr-1" data-id="${rec.id}">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="delete-btn text-slate-400 hover:text-rose-600 p-1" data-id="${rec.id}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Attach dynamic action events
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => startEdit(btn.dataset.id));
+      });
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteRecord(btn.dataset.id));
+      });
+    }
+
+    // --- FORM ACTIONS ---
+    recordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const itemName = document.getElementById('itemName').value.trim();
+      const date = recordDate.value;
+      const type = document.querySelector('input[name="type"]:checked').value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const unit = document.getElementById('unit').value;
+      const note = document.getElementById('note').value.trim();
+
+      if (!itemName || isNaN(quantity)) {
+        showAlert("資材名と正しい数量を入力してください。", "error");
+        return;
+      }
+
+      const recordData = {
+        itemName,
+        date,
+        type,
+        quantity,
+        unit,
+        note,
+        updatedAt: serverTimestamp(),
+        userId: currentUser ? currentUser.uid : 'anonymous'
+      };
+
+      try {
+        if (editDocId.value) {
+          // Update
+          await updateDoc(doc(db, 'records', editDocId.value), recordData);
+          showAlert("記録を更新しました！", "success");
+        } else {
+          // Create
+          recordData.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'records'), recordData);
+          showAlert("新しい入出庫記録を登録しました！", "success");
+        }
+        resetForm();
+      } catch (err) {
+        console.error("Save Error:", err);
+        showAlert("保存中にエラーが発生しました: " + err.message, "error");
+      }
+    });
+
+    function startEdit(id) {
+      const rec = allRecords.find(r => r.id === id);
+      if (!rec) return;
+
+      editDocId.value = rec.id;
+      document.getElementById('itemName').value = rec.itemName;
+      recordDate.value = rec.date;
+      document.querySelector(`input[name="type"][value="${rec.type}"]`).checked = true;
+      document.getElementById('quantity').value = rec.quantity;
+      document.getElementById('unit').value = rec.unit;
+      document.getElementById('note').value = rec.note || '';
+
+      formTitle.innerHTML = '<i class="fa-solid fa-pen-to-square text-emerald-600"></i> 記録の編集';
+      submitBtnText.textContent = "更新する";
+      cancelEditBtn.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      editDocId.value = '';
+      recordForm.reset();
+      recordDate.value = new Date().toISOString().split('T')[0];
+      formTitle.innerHTML = '<i class="fa-solid fa-square-plus text-emerald-600"></i> 入出庫の記録登録';
+      submitBtnText.textContent = "登録する";
+      cancelEditBtn.classList.add('hidden');
+    }
+
+    cancelEditBtn.addEventListener('click', resetForm);
+
+    async function deleteRecord(id) {
+      if (!confirm("この記録を削除してもよろしいですか？")) return;
+      try {
+        await deleteDoc(doc(db, 'records', id));
+        showAlert("記録を削除しました", "info");
+      } catch (err) {
+        console.error("Delete error:", err);
+        showAlert("削除に失敗しました: " + err.message, "error");
+      }
+    }
+
+    // Filter listeners
+    searchInput.addEventListener('input', renderHistoryTable);
+    filterType.addEventListener('change', renderHistoryTable);
+    sortOrder.addEventListener('change', renderHistoryTable);
+
+  </script>
+</body>
+</html>
